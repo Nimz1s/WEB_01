@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  RESTAURANT_ADMIN
+  SYSTEM_ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id               String       @id @default(uuid()) @db.Uuid
+  name             String
+  email            String       @unique
+  passwordHash     String
+  role             Role         @default(CUSTOMER)
+  ownedRestaurants Restaurant[] @relation("RestaurantOwner")
+  bookings         Booking[]
+  reviews          Review[]
+  favorites        Favorite[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Restaurant {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  address     String
+  phone       String?
+  imageUrl    String?
+  ownerId     String?           @db.Uuid
+  owner       User?             @relation("RestaurantOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  tables      RestaurantTable[]
+  categories  Category[]
+  reviews     Review[]
+  favorites   Favorite[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model RestaurantTable {
+  id           String     @id @default(uuid()) @db.Uuid
+  restaurantId String     @db.Uuid
+  number       Int
+  capacity     Int
+  isActive     Boolean    @default(true)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([restaurantId, number])
+}
+
+model Booking {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @db.Uuid
+  tableId   String          @db.Uuid
+  startsAt  DateTime
+  endsAt    DateTime
+  guests    Int
+  status    BookingStatus   @default(PENDING)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  table     RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Category {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @unique
+  restaurants Restaurant[]
+}
+
+model Review {
+  id           String     @id @default(uuid()) @db.Uuid
+  userId       String     @db.Uuid
+  restaurantId String     @db.Uuid
+  rating       Int
+  comment      String?
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([userId, restaurantId])
+}
+
+model Favorite {
+  userId       String     @db.Uuid
+  restaurantId String     @db.Uuid
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@id([userId, restaurantId])
+}
