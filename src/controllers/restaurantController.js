@@ -5,13 +5,63 @@ const prisma = require('../config/prisma');
 // Отримати всі ресторани
 const getAllRestaurants = async (req, res, next) => {
   try {
-    const restaurants = await prisma.restaurant.findMany({
-      orderBy: {
-        createdAt: 'desc'
+    const {
+      search,
+      city,
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    const currentPage = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.min(
+      Math.max(parseInt(limit, 10) || 10, 1),
+      100
+    );
+
+    const skip = (currentPage - 1) * pageSize;
+
+    const where = {
+      AND: [
+        search
+          ? {
+              name: {
+                contains: search,
+                mode: 'insensitive'
+              }
+            }
+          : {},
+        city
+          ? {
+              address: {
+                contains: city,
+                mode: 'insensitive'
+              }
+            }
+          : {}
+      ]
+    };
+
+    const [restaurants, total] = await Promise.all([
+      prisma.restaurant.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip,
+        take: pageSize
+      }),
+      prisma.restaurant.count({ where })
+    ]);
+
+    res.status(200).json({
+      data: restaurants,
+      pagination: {
+        total,
+        page: currentPage,
+        limit: pageSize,
+        totalPages: Math.ceil(total / pageSize)
       }
     });
-
-    res.status(200).json(restaurants);
   } catch (error) {
     next(error);
   }
