@@ -103,12 +103,13 @@ const createRestaurant = async (req, res, next) => {
 
     const restaurant = await prisma.restaurant.create({
       data: {
-        name,
-        description,
-        address,
-        phone,
-        imageUrl
-      }
+      name,
+      description,
+      address,
+      phone,
+      imageUrl,
+      ownerId: req.user.id
+    }
     });
 
     res.status(201).json(restaurant);
@@ -122,6 +123,19 @@ const createRestaurant = async (req, res, next) => {
 const updateRestaurant = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    const existingRestaurant = await prisma.restaurant.findFirst({
+      where: {
+        id,
+        ownerId: req.user.id
+      }
+    });
+
+    if (!existingRestaurant) {
+      return res.status(404).json({
+        message: 'Restaurant not found or access denied'
+      });
+    }
 
     const {
       name,
@@ -153,6 +167,19 @@ const updateRestaurant = async (req, res, next) => {
 const deleteRestaurant = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    const existingRestaurant = await prisma.restaurant.findFirst({
+      where: {
+        id,
+        ownerId: req.user.id
+      }
+    });
+
+    if (!existingRestaurant) {
+      return res.status(404).json({
+        message: 'Restaurant not found or access denied'
+      });
+    }
 
     await prisma.restaurant.delete({
       where: { id }
