@@ -151,25 +151,24 @@ TableBook/
 
 До звіту необхідно додати скріншоти успішного тестування API через Swagger UI:
 
-1. Реєстрація користувача — `POST /api/auth/register`.
-2. Успішний вхід — `POST /api/auth/login`, відповідь `200 OK`.
-3. Авторизація через JWT — кнопка `Authorize`.
-4. Отримання даних користувача — `GET /api/auth/me`, відповідь `200 OK`.
-5. Перевірка ролей — `GET /api/auth/admin` для користувача з роллю `CUSTOMER`, очікувана відповідь `403 Forbidden`.
-6. Завантаження зображення ресторану — `POST /api/restaurants/{id}/image`, відповідь `200 OK`.
-7. Видалення зображення — `DELETE /api/restaurants/{id}/image`, відповідь `200 OK`.
-8. Пошук, фільтрація та пагінація — `GET /api/restaurants?search=Bella&city=Kyiv&page=1&limit=5`, відповідь `200 OK`.
+1. <img width="587" height="938" alt="image" src="https://github.com/user-attachments/assets/c53ea212-584e-4af2-b262-305d6cab8ef5" />
+
+2. <img width="547" height="890" alt="image" src="https://github.com/user-attachments/assets/e83154b8-0991-4d59-82b7-2a493fa4eb89" />
+
+3. <img width="673" height="342" alt="image" src="https://github.com/user-attachments/assets/b556da5b-e819-46fd-b739-426f06fbc8ee" />
+
+4. <img width="1862" height="916" alt="image" src="https://github.com/user-attachments/assets/5520343e-c15a-4698-984a-4ae54a18cb81" />
+
+5. <img width="661" height="572" alt="image" src="https://github.com/user-attachments/assets/c10a1cc1-af4b-48e2-8d9c-da1aab59a4cf" />
+
+6. <img width="1482" height="967" alt="image" src="https://github.com/user-attachments/assets/ec1cfc95-62c7-4d39-8eb9-993280c41425" />
+
 
 ## Висновки
 
 Під час виконання лабораторної роботи №2 було розширено backend-систему TableBook та реалізовано основні механізми автентифікації й авторизації користувачів.
-
 Було реалізовано безпечне хешування паролів за допомогою Argon2id, автентифікацію за допомогою JWT, керування Refresh Token, перевірку ролей користувачів, завантаження та видалення зображень ресторанів, а також пошук, фільтрацію та пагінацію.
-
 Для зручності тестування та взаємодії з API налаштовано документацію Swagger із підтримкою Bearer Authentication.
-
 У результаті роботи отримано розширену backend-систему TableBook із додатковими механізмами безпеки та керування даними.
 
-**Самооцінка: [Оцінка від 3 до 5]**
-
-**Обґрунтування:** Поставлена мета лабораторної роботи виконана. Реалізовано та перевірено основні функціональні можливості автентифікації, авторизації, роботи з файлами, пошуку, фільтрації, пагінації та документації API.
+**Самооцінка: [Оцінка 4]**
