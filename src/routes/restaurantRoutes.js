@@ -7,6 +7,9 @@ const upload = require('../middleware/upload');
 const prisma = require('../config/prisma');
 const { deleteFile } = require('../services/fileService');
 
+const { authenticateToken } = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/authorize');
+
 const {
   createRestaurantSchema,
   updateRestaurantSchema
@@ -123,7 +126,13 @@ router.get('/:id', getRestaurantById);
  *       400:
  *         description: Validation error
  */
-router.post('/', validate(createRestaurantSchema), createRestaurant);
+router.post(
+  '/',
+  authenticateToken,
+  authorizeRoles('RESTAURANT_ADMIN'),
+  validate(createRestaurantSchema),
+  createRestaurant
+);
 
 /**
  * @swagger
@@ -161,7 +170,13 @@ router.post('/', validate(createRestaurantSchema), createRestaurant);
  *       404:
  *         description: Restaurant not found
  */
-router.put('/:id', validate(updateRestaurantSchema), updateRestaurant);
+router.put(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('RESTAURANT_ADMIN'),
+  validate(updateRestaurantSchema),
+  updateRestaurant
+);
 
 /**
  * @swagger
@@ -182,7 +197,12 @@ router.put('/:id', validate(updateRestaurantSchema), updateRestaurant);
  *       404:
  *         description: Restaurant not found
  */
-router.delete('/:id', deleteRestaurant);
+router.delete(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('RESTAURANT_ADMIN'),
+  deleteRestaurant
+);
 
 // POST /api/restaurants/:id/image
 // Завантажити зображення ресторану
@@ -220,7 +240,7 @@ router.delete('/:id', deleteRestaurant);
  *       404:
  *         description: Restaurant not found
  */
-router.post('/:id/image', (req, res, next) => {
+router.post('/:id/image', authenticateToken, authorizeRoles('RESTAURANT_ADMIN'), (req, res, next) => {
   upload.single('image')(req, res, (error) => {
     if (error) {
       return res.status(400).json({
@@ -232,6 +252,19 @@ router.post('/:id/image', (req, res, next) => {
 }, async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    const existingRestaurant = await prisma.restaurant.findFirst({
+      where: {
+        id,
+        ownerId: req.user.id
+      }
+    });
+
+    if (!existingRestaurant) {
+      return res.status(404).json({
+        message: 'Restaurant not found or access denied'
+      });
+    }
 
     if (!req.file) {
       return res.status(400).json({
@@ -275,12 +308,15 @@ router.post('/:id/image', (req, res, next) => {
  *       404:
  *         description: Restaurant or image not found
  */
-router.delete('/:id/image', async (req, res, next) => {
+router.delete('/:id/image', authenticateToken, authorizeRoles('RESTAURANT_ADMIN'), async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id }
+    const restaurant = await prisma.restaurant.findFirst({
+      where: {
+        id,
+        ownerId: req.user.id
+      }
     });
 
     if (!restaurant) {
